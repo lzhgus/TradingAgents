@@ -5,16 +5,27 @@ from openai import OpenAI
 
 class FinancialSituationMemory:
     def __init__(self, name, config):
-        if config["backend_url"] == "http://localhost:11434/v1":
-            self.embedding = "nomic-embed-text"
-        else:
-            self.embedding = "text-embedding-3-small"
-        self.client = OpenAI(base_url=config["backend_url"])
+        """Initialize FinancialSituationMemory with local Ollama embeddings.
+        
+        Args:
+            name: Collection name for ChromaDB storage
+            config: Configuration dictionary (currently unused, kept for compatibility)
+            
+        Note:
+            Uses local Ollama with mxbai-embed-large:latest for embeddings.
+            Requires Ollama to be running on localhost:11434 with the model installed.
+        """
+        self.embedding = "mxbai-embed-large:latest"
+        self.ollama_url = "http://localhost:11434/v1"
+        self.client = OpenAI(
+            base_url=self.ollama_url,
+            api_key="dummy-key-for-ollama"  # Ollama doesn't require authentication
+        )
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
         self.situation_collection = self.chroma_client.create_collection(name=name)
 
     def get_embedding(self, text):
-        """Get OpenAI embedding for a text"""
+        """Get local Ollama embedding for a text using mxbai-embed-large model."""
         
         response = self.client.embeddings.create(
             model=self.embedding, input=text
@@ -45,7 +56,7 @@ class FinancialSituationMemory:
         )
 
     def get_memories(self, current_situation, n_matches=1):
-        """Find matching recommendations using OpenAI embeddings"""
+        """Find matching recommendations using local Ollama embeddings."""
         query_embedding = self.get_embedding(current_situation)
 
         results = self.situation_collection.query(
