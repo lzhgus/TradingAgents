@@ -21,7 +21,7 @@ from rich.align import Align
 from rich.rule import Rule
 
 from tradingagents.graph.trading_graph import TradingAgentsGraph
-from tradingagents.default_config import DEFAULT_CONFIG
+from tradingagents.default_config import DEFAULT_CONFIG, get_custom_config
 from cli.models import AnalystType
 from cli.utils import *
 
@@ -463,22 +463,45 @@ def get_user_selections():
     )
     selected_research_depth = select_research_depth()
 
-    # Step 5: OpenAI backend
-    console.print(
-        create_question_box(
-            "Step 5: OpenAI backend", "Select which service to talk to"
-        )
-    )
-    selected_llm_provider, backend_url = select_llm_provider()
+    # Check for custom configuration from .env file
+    custom_config = get_custom_config()
     
-    # Step 6: Thinking agents
-    console.print(
-        create_question_box(
-            "Step 6: Thinking Agents", "Select your thinking agents for analysis"
+    if custom_config:
+        # Custom configuration detected - skip LLM selection prompts
+        console.print(
+            Panel(
+                "[green]Custom LLM configuration detected from .env file[/green]\n"
+                f"[dim]Provider: {custom_config['llm_provider']}[/dim]\n"
+                f"[dim]Backend URL: {custom_config['backend_url']}[/dim]\n"
+                f"[dim]Model: {custom_config['deep_think_llm']}[/dim]",
+                border_style="green",
+                padding=(1, 2),
+                title="Using Custom Configuration"
+            )
         )
-    )
-    selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
-    selected_deep_thinker = select_deep_thinking_agent(selected_llm_provider)
+        selected_llm_provider = custom_config["llm_provider"]
+        backend_url = custom_config["backend_url"]
+        selected_shallow_thinker = custom_config["quick_think_llm"]
+        selected_deep_thinker = custom_config["deep_think_llm"]
+        custom_api_key = custom_config.get("custom_api_key")
+    else:
+        # Step 5: LLM Provider
+        console.print(
+            create_question_box(
+                "Step 5: LLM Provider", "Select which service to talk to"
+            )
+        )
+        selected_llm_provider, backend_url = select_llm_provider()
+        
+        # Step 6: Thinking agents
+        console.print(
+            create_question_box(
+                "Step 6: Thinking Agents", "Select your thinking agents for analysis"
+            )
+        )
+        selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
+        selected_deep_thinker = select_deep_thinking_agent(selected_llm_provider)
+        custom_api_key = None
 
     return {
         "ticker": selected_ticker,
@@ -489,6 +512,7 @@ def get_user_selections():
         "backend_url": backend_url,
         "shallow_thinker": selected_shallow_thinker,
         "deep_thinker": selected_deep_thinker,
+        "custom_api_key": custom_api_key,
     }
 
 
@@ -743,6 +767,12 @@ def run_analysis():
     config["deep_think_llm"] = selections["deep_thinker"]
     config["backend_url"] = selections["backend_url"]
     config["llm_provider"] = selections["llm_provider"].lower()
+    
+    # Use custom_api_key from selections if provided, otherwise check DEFAULT_CONFIG
+    if selections.get("custom_api_key"):
+        config["custom_api_key"] = selections["custom_api_key"]
+    elif "custom_api_key" in DEFAULT_CONFIG:
+        config["custom_api_key"] = DEFAULT_CONFIG["custom_api_key"]
 
     # Initialize the graph
     graph = TradingAgentsGraph(

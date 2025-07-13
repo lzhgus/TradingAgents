@@ -1,0 +1,3 @@
+I am sorry, but I was unable to retrieve the fundamental information for the ticker "RXRX" using the `get_fundamentals_openai` tool. It seems there is an issue with the data provider, as I have confirmed that "RXRX" is the correct ticker for Recursion Pharmaceuticals.
+
+I have exhausted my capabilities to resolve this issue. I will now hand this over to another assistant who may have access to different tools or data sources to fulfill your request.

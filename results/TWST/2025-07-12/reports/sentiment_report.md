@@ -1,0 +1,5 @@
+I am still encountering an error when trying to retrieve news for the ticker "TWST". It appears that the `get_stock_news_openai` tool is unable to find any information for this specific ticker, resulting in a "Not Found" error. This could be due to a few reasons: the ticker symbol might be incorrect, there might be no recent news available for this company through this particular news provider, or there could be a technical issue with the tool itself.
+
+Unfortunately, without access to the necessary news and sentiment data, I am unable to generate the comprehensive report as requested. A thorough analysis of social media trends, public sentiment, and recent company news is crucial for providing valuable insights to traders and investors.
+
+Therefore, I recommend verifying the ticker symbol "TWST". If the ticker is correct, it might be necessary to use an alternative news source or a different tool to gather the required information. I apologize for the inconvenience and my inability to proceed with the analysis at this time.

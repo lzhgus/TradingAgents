@@ -59,12 +59,42 @@ class TradingAgentsGraph:
 
         # Initialize LLMs
         if self.config["llm_provider"].lower() == "openai" or self.config["llm_provider"] == "ollama" or self.config["llm_provider"] == "openrouter":
-            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
+            # Prepare kwargs for ChatOpenAI
+            openai_kwargs = {
+                "model": self.config["deep_think_llm"],
+                "base_url": self.config["backend_url"],
+            }
+            
+            # Handle custom API key - always set one for custom endpoints
+            if custom_api_key := self.config.get("custom_api_key"):
+                openai_kwargs["api_key"] = custom_api_key
+            elif self.config.get("backend_url") != "https://api.openai.com/v1":
+                # For non-OpenAI endpoints, set a dummy key if none provided
+                openai_kwargs["api_key"] = "dummy-key-for-custom-endpoint"
+            
+            self.deep_thinking_llm = ChatOpenAI(**openai_kwargs)
+            
+            # Use same kwargs for quick thinking LLM but with different model
+            openai_kwargs["model"] = self.config["quick_think_llm"]
+            self.quick_thinking_llm = ChatOpenAI(**openai_kwargs)
+            
         elif self.config["llm_provider"].lower() == "anthropic":
-            self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
+            # Prepare kwargs for ChatAnthropic
+            anthropic_kwargs = {
+                "model": self.config["deep_think_llm"],
+                "base_url": self.config["backend_url"],
+            }
+            if custom_api_key := self.config.get("custom_api_key"):
+                anthropic_kwargs["api_key"] = custom_api_key
+            
+            self.deep_thinking_llm = ChatAnthropic(**anthropic_kwargs)
+            
+            # Use same kwargs for quick thinking LLM but with different model
+            anthropic_kwargs["model"] = self.config["quick_think_llm"]
+            self.quick_thinking_llm = ChatAnthropic(**anthropic_kwargs)
+            
         elif self.config["llm_provider"].lower() == "google":
+            # Google GenAI doesn't support custom endpoints in the same way
             self.deep_thinking_llm = ChatGoogleGenerativeAI(model=self.config["deep_think_llm"])
             self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
         else:

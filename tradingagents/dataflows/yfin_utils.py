@@ -5,6 +5,9 @@ from typing import Annotated, Callable, Any, Optional
 from pandas import DataFrame
 import pandas as pd
 from functools import wraps
+import os
+import requests
+import urllib3
 
 from .utils import save_output, SavePathType, decorate_all_methods
 
@@ -14,6 +17,22 @@ def init_ticker(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(symbol: Annotated[str, "ticker symbol"], *args, **kwargs) -> Any:
+        # Handle SSL certificate issues
+        disable_ssl = os.getenv("DISABLE_SSL_VERIFY", "false").lower() == "true"
+        
+        if disable_ssl:
+            # Disable SSL warnings and verification for development
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+            requests.packages.urllib3.disable_warnings()
+            
+            # Create a session with SSL verification disabled
+            session = requests.Session()
+            session.verify = False
+            
+            # Monkey patch yfinance to use our session
+            import yfinance.utils as yf_utils
+            yf_utils.get_json = lambda url, proxy=None, headers=None: session.get(url, headers=headers, proxies=proxy).json()
+
         ticker = yf.Ticker(symbol)
         return func(ticker, *args, **kwargs)
 

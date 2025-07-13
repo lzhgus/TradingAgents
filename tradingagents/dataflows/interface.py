@@ -704,7 +704,15 @@ def get_YFin_data(
 
 def get_stock_news_openai(ticker, curr_date):
     config = get_config()
-    client = OpenAI(base_url=config["backend_url"])
+    # Initialize OpenAI client with custom API key if provided
+    openai_kwargs = {"base_url": config["backend_url"]}
+    if custom_api_key := config.get("custom_api_key"):
+        openai_kwargs["api_key"] = custom_api_key
+    elif config.get("backend_url") != "https://api.openai.com/v1":
+        # For non-OpenAI endpoints, set a dummy key if none provided
+        openai_kwargs["api_key"] = "dummy-key-for-custom-endpoint"
+    
+    client = OpenAI(**openai_kwargs)
 
     response = client.responses.create(
         model=config["quick_think_llm"],
@@ -739,7 +747,15 @@ def get_stock_news_openai(ticker, curr_date):
 
 def get_global_news_openai(curr_date):
     config = get_config()
-    client = OpenAI(base_url=config["backend_url"])
+    # Initialize OpenAI client with custom API key if provided
+    openai_kwargs = {"base_url": config["backend_url"]}
+    if custom_api_key := config.get("custom_api_key"):
+        openai_kwargs["api_key"] = custom_api_key
+    elif config.get("backend_url") != "https://api.openai.com/v1":
+        # For non-OpenAI endpoints, set a dummy key if none provided
+        openai_kwargs["api_key"] = "dummy-key-for-custom-endpoint"
+    
+    client = OpenAI(**openai_kwargs)
 
     response = client.responses.create(
         model=config["quick_think_llm"],
@@ -774,7 +790,15 @@ def get_global_news_openai(curr_date):
 
 def get_fundamentals_openai(ticker, curr_date):
     config = get_config()
-    client = OpenAI(base_url=config["backend_url"])
+    # Initialize OpenAI client with custom API key if provided
+    openai_kwargs = {"base_url": config["backend_url"]}
+    if custom_api_key := config.get("custom_api_key"):
+        openai_kwargs["api_key"] = custom_api_key
+    elif config.get("backend_url") != "https://api.openai.com/v1":
+        # For non-OpenAI endpoints, set a dummy key if none provided
+        openai_kwargs["api_key"] = "dummy-key-for-custom-endpoint"
+    
+    client = OpenAI(**openai_kwargs)
 
     response = client.responses.create(
         model=config["quick_think_llm"],
